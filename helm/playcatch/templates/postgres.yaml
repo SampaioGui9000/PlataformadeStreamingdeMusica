@@ -1,0 +1,54 @@
+{{- if .Values.postgres.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "playcatch.name" . }}-postgres
+spec:
+  selector:
+    app: {{ include "playcatch.name" . }}-postgres
+  ports:
+    - name: tcp-postgres
+      port: 5432
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "playcatch.name" . }}-postgres
+spec:
+  serviceName: {{ include "playcatch.name" . }}-postgres
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ include "playcatch.name" . }}-postgres
+  template:
+    metadata:
+      labels:
+        app: {{ include "playcatch.name" . }}-postgres
+    spec:
+      containers:
+        - name: postgres
+          image: {{ .Values.postgres.image }}
+          ports:
+            - containerPort: 5432
+          envFrom:
+            - secretRef:
+                name: {{ include "playcatch.name" . }}-db
+          env:
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          readinessProbe:
+            exec:
+              command: ["sh", "-c", "pg_isready -U $POSTGRES_USER"]
+            periodSeconds: 5
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: {{ .Values.postgres.storage }}
+{{- end }}

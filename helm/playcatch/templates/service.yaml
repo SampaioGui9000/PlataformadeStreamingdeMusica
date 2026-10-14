@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "playcatch.name" . }}
+  labels: {{- include "playcatch.labels" . | nindent 4 }}
+spec:
+  selector:
+    app: {{ include "playcatch.name" . }}
+  ports:
+    - name: http
+      port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.targetPort }}

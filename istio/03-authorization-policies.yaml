@@ -1,0 +1,45 @@
+# 1) Nega tudo por padrão no namespace
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: deny-all
+  namespace: playcatch
+spec: {}
+---
+# 2) Só o ingress gateway pode chamar a API (GET/POST/PUT/DELETE)
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: allow-ingress-to-api
+  namespace: playcatch
+spec:
+  selector:
+    matchLabels:
+      app: playcatch
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            principals: ["cluster.local/ns/istio-system/sa/istio-ingressgateway-service-account"]
+      to:
+        - operation:
+            methods: ["GET", "POST", "PUT", "DELETE"]
+---
+# 3) Só a API (service account default do namespace) acessa o Postgres
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: allow-api-to-postgres
+  namespace: playcatch
+spec:
+  selector:
+    matchLabels:
+      app: playcatch-postgres
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            principals: ["cluster.local/ns/playcatch/sa/default"]
+      to:
+        - operation:
+            ports: ["5432"]

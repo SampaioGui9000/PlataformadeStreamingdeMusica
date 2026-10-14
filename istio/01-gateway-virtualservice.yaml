@@ -1,0 +1,30 @@
+apiVersion: networking.istio.io/v1
+kind: Gateway
+metadata:
+  name: playcatch-gateway
+  namespace: playcatch
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+    - port: { number: 80, name: http, protocol: HTTP }
+      hosts: ["*"]
+---
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: playcatch
+  namespace: playcatch
+spec:
+  hosts: ["*"]
+  gateways: ["playcatch-gateway"]
+  http:
+    - route:
+        - destination:
+            host: playcatch
+            port: { number: 80 }
+      timeout: 10s
+      retries:
+        attempts: 3
+        perTryTimeout: 3s
+        retryOn: 5xx,connect-failure

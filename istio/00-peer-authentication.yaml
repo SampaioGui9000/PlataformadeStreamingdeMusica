@@ -1,0 +1,9 @@
+# mTLS obrigatório entre todos os serviços do namespace
+apiVersion: security.istio.io/v1
+kind: PeerAuthentication
+metadata:
+  name: default
+  namespace: playcatch
+spec:
+  mtls:
+    mode: STRICT

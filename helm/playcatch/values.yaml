@@ -1,0 +1,22 @@
+replicaCount: 2
+
+image:
+  repository: playcatch-api
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  port: 80
+  targetPort: 8000
+
+resources:
+  requests: { cpu: 100m, memory: 128Mi }
+  limits: { cpu: 500m, memory: 256Mi }
+
+postgres:
+  enabled: true
+  image: postgres:16-alpine
+  user: playcatch
+  password: playcatch   # em produção, use um Secret externo / Vault
+  database: playcatch
+  storage: 1Gi
